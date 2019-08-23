@@ -113,8 +113,8 @@ class CPU:
 
         while self.pc < len(self.ram):
 
-            ir = self.ram[self.pc]
-            num_operands = (ir & 0b11000000) >> 6
+            command = self.ram[self.pc]
+            num_operands = (command & 0b11000000) >> 6
 
             if num_operands == 1:
                 operand_a = self.ram_read(self.pc + 1)
@@ -122,53 +122,54 @@ class CPU:
                 operand_a = self.ram_read(self.pc + 1)
                 operand_b = self.ram_read(self.pc + 2)
 
-            if ir == HLT:
+            if command == HLT:
                 self.halt()
-            elif ir == LDI:
+            elif command == LDI:
                 self.reg[operand_a] = operand_b
-            elif ir == PRN:
+            elif command == PRN:
                 print(self.reg[operand_a])
-            elif ir == MUL:
+            elif command == MUL:
                 self.alu("MUL", operand_a, operand_b)
                 print(self.reg[operand_a])
-            elif ir == ADD:
+            elif command == ADD:
                 self.alu("ADD", operand_a, operand_b)
-            elif ir == AND:
+            elif command == AND:
                 self.alu("AND", operand_a, operand_b)
-            elif ir == LD:
+            elif command == LD:
                 self.reg[operand_a] = self.reg[operand_b]
-            elif ir == MOD:
+            elif command == MOD:
                 self.alu("MOD", operand_a, operand_b)
-            elif ir == POP:
+            elif command == POP:
                 value = self.ram[self.reg[self.sp]]
                 self.reg[operand_a] = value
                 self.reg[self.sp] += 1
-            elif ir == PUSH:
+            elif command == PUSH:
                 self.reg[self.sp] -= 1
                 value = self.reg[operand_a]
                 self.ram[self.reg[self.sp]] = value  
-            elif ir == CMP:
+            elif command == CMP:
                 self.alu("CMP", operand_a, operand_b)
 
-            if ir == CALL:
+            if command == CALL:
                 return_addr = self.pc + 2
                 self.reg[self.sp] -= 1
                 self.ram[self.reg[self.sp]] = return_addr
                 regnum = self.ram[self.pc + 1]
                 subroutine_addr = self.reg[regnum]
                 self.pc = subroutine_addr
-            elif ir == RET:
+                
+            elif command == RET:
                 return_addr = self.ram[self.reg[self.sp]]
                 self.reg[self.sp] += 1
                 self.pc = return_addr
-            elif ir == JMP:
+            elif command == JMP:
                 self.pc = self.reg[operand_a]
-            elif ir == JNE:
+            elif command == JNE:
                 if self.fl[self.e] == 0:
                     self.pc = self.reg[operand_a]
                 else:
                     self.pc += num_operands + 1
-            elif ir == JEQ:
+            elif command == JEQ:
                 if self.fl[self.e] == 1:
                     self.pc = self.reg[operand_a]
                 else:
